@@ -20,7 +20,9 @@ MAIN_WINDOW_TITLE = "EA Sports FC 24"
 MAIN_WINDOW_SIZE = [900, 550]
 
 LOGO_PATH = "../assets/logo.png"
-MALE_PLAYERS_CSV_PATH = "../data/male_players.csv"
+MALE_PLAYERS_CSV_NAME = "male_players.csv"
+MALE_PLAYERS_SORTED_CSV_NAME = "male_players_sorted.csv"
+CSV_PATH = "../data/"
 
 # TDOO : Isoler les données de configuration dans plusieurs fichiers de configuration différents pour faciliter la
 #  maintenance du code

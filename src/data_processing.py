@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 
 from config import config as cfg
@@ -87,26 +89,31 @@ def sauvegarder_donnees(data, fichier):
 
 # Fonction principale pour traiter les données (pour tester)
 def main():
-    fichier_csv = cfg.MALE_PLAYERS_CSV_PATH
+    fichier_csv = cfg.CSV_PATH + cfg.MALE_PLAYERS_CSV_NAME
 
     # Charger et traiter les données
     data = charger_donnees(fichier_csv)
 
     if data is not None:
-        # Vérifier si les données ont déjà été traitées pour ne pas refaire le traitement à chaque fois
-        if 'Catégorie' not in data.columns and 'Blocs' not in data.columns:
-            # Catégoriser les joueurs
-            data = categoriser_joueurs(data)
+        # Vérifier si le fichier male_players_sorted.csv existe dans le dossier data
+        if os.path.exists(cfg.CSV_PATH + cfg.MALE_PLAYERS_SORTED_CSV_NAME):
+            print("Le fichier male_players_sorted.csv existe déjà.")
+        else:
+            # Vérifier si les données ont déjà été traitées pour ne pas refaire le traitement à chaque fois
+            if 'Catégorie' not in data.columns and 'Blocs' not in data.columns:
+                # Catégoriser les joueurs
+                data = categoriser_joueurs(data)
 
-            # Trier les positions des joueurs
-            data = trier_positions(data)
+                # Trier les positions des joueurs
+                data = trier_positions(data)
 
-            # Convertir les URLs des joueurs
-            data['URL'] = data['URL'].apply(convertir_urls)
+                # Convertir les URLs des joueurs
+                data['URL'] = data['URL'].apply(convertir_urls)
 
-            # Enregistrer les données traitées dans un nouveau fichier CSV
-            nouveau_fichier_csv = "male_players_sorted.csv"
-            sauvegarder_donnees(data, nouveau_fichier_csv)
+                # Enregistrer les données traitées dans un nouveau fichier CSV
+                nouveau_fichier_csv = cfg.CSV_PATH + cfg.MALE_PLAYERS_SORTED_CSV_NAME
+                sauvegarder_donnees(data, nouveau_fichier_csv)
+                print("Les données ont été traitées et enregistrées dans male_players_sorted.csv.")
 
 
 if __name__ == "__main__":
