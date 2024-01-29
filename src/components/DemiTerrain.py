@@ -21,7 +21,6 @@ class DemiTerrain(QWidget):
         self.dessiner_demi_terrain(painter)
 
         # Dessiner l'image à l'emplacement spécifié
-        image_height = 225  # Hauteur de l'image redimensionnée
         self.dessiner_image(painter, x=20, y=400)
 
     def dessiner_fond_vert_degrade(self, painter):
