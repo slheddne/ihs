@@ -2,8 +2,6 @@ import os
 
 import pandas as pd
 
-from config import config as cfg
-
 # Constantes pour les catégories
 CATEGORIES = {
     'Facile': 0.25,
@@ -16,12 +14,13 @@ CATEGORIES = {
 # Fonction pour charger les données depuis le fichier CSV
 def charger_donnees(fichier):
     try:
+        print(f"Chargement des données depuis le fichier '{fichier}'.")
         return pd.read_csv(fichier)
     except FileNotFoundError:
-        print("Exception #ERR_FC24_1 -> Le fichier spécifié n'existe pas.")
+        print("Exception -> Le fichier spécifié n'existe pas.")
         return None
     except pd.errors.ParserError:
-        print("Exception #ERR_FC24_2 -> Le format du fichier CSV est incorrect.")
+        print("Exception -> Le format du fichier CSV est incorrect.")
         return None
 
 
@@ -39,7 +38,7 @@ def convertir_urls(url):
     player_id = url.split('/')[-1]
 
     # Construire le nouveau lien avec l'ID approprié
-    player_url = f"https://media.contentapi.ea.com/content/dam/ea/easfc/fc-24/ratings/common/full/player-portraits/{player_id}.png.adapt.50w.png"
+    player_url = f"https://media.contentapi.ea.com/content/dam/ea/easfc/fc-24/ratings/common/full/player-portraits/p{player_id}.png.adapt.50w.png"
     return player_url
 
 
@@ -68,15 +67,15 @@ def generer_nom_joueur(data, categorie, bloc):
         joueurs_filtres = data[(data['Catégorie'] == categorie) & (data['Blocs'] == bloc)]
 
         if joueurs_filtres.empty:
-            raise ValueError("Exception #ERR_FC24_3 -> Aucun joueur trouvé pour cette catégorie et ce bloc.")
+            raise ValueError("Exception -> Aucun joueur trouvé pour cette catégorie et ce bloc.")
 
         joueur_choisi = joueurs_filtres.sample()
         return joueur_choisi['Name'].values[0]
 
     except ValueError as e:
-        return f"Exception #ERR_FC24_4 -> Erreur: {e}"
+        return f"Exception -> Erreur: {e}"
     except Exception as e:
-        return f"Exception #ERR_FC24_5 -> Une erreur inattendue s'est produite: {e}"
+        return f"Exception -> Une erreur inattendue s'est produite: {e}"
 
 
 # Fonction pour enregistrer les données dans un fichier Excel
@@ -84,19 +83,19 @@ def sauvegarder_donnees(data, fichier):
     try:
         data.to_csv(fichier, index=False)
     except Exception as e:
-        print(f"Exception #ERR_FC24_6 -> Erreur lors de l'enregistrement des données : {e}")
+        print(f"Exception -> Erreur lors de l'enregistrement des données : {e}")
 
 
-# Fonction principale pour traiter les données (pour tester)
-def main():
-    fichier_csv = cfg.CSV_PATH + cfg.MALE_PLAYERS_CSV_NAME
+# Fonction principale pour traiter les données
+def traiter_donnes():
+    fichier_csv = "../data/male_players.csv"
 
     # Charger et traiter les données
     data = charger_donnees(fichier_csv)
 
     if data is not None:
         # Vérifier si le fichier male_players_sorted.csv existe dans le dossier data
-        if os.path.exists(cfg.CSV_PATH + cfg.MALE_PLAYERS_SORTED_CSV_NAME):
+        if os.path.exists("../data/male_players_sorted.csv"):
             print("Le fichier male_players_sorted.csv existe déjà.")
         else:
             # Vérifier si les données ont déjà été traitées pour ne pas refaire le traitement à chaque fois
@@ -111,10 +110,16 @@ def main():
                 data['URL'] = data['URL'].apply(convertir_urls)
 
                 # Enregistrer les données traitées dans un nouveau fichier CSV
-                nouveau_fichier_csv = cfg.CSV_PATH + cfg.MALE_PLAYERS_SORTED_CSV_NAME
+                nouveau_fichier_csv = "../data/male_players_sorted.csv"
                 sauvegarder_donnees(data, nouveau_fichier_csv)
                 print("Les données ont été traitées et enregistrées dans male_players_sorted.csv.")
 
 
-if __name__ == "__main__":
-    main()
+def get_player(data, position):
+    # Filtrer les données pour le poste spécifié
+    filtered_data = data[data['Position'] == position]
+
+    # Sélectionner une entrée aléatoire parmi les joueurs à ce poste
+    player_entry = filtered_data.sample()
+
+    return player_entry

@@ -1,28 +1,28 @@
-WINDOW_WIDTH = 900
-WINDOW_HEIGHT = 550
+def get_player_position(tactic, position):
+    positions = {}
+    if tactic == "433":
+        positions = {
+            'GK': (175, 460),  # Gardien
+            'LB': (20, 360),  # Défenseur latéral gauche
+            'CBL': (120, 380),  # Défenseur central gauche
+            'CBR': (230, 380),  # Défenseur central droit
+            'RB': (330, 360),  # Défenseur latéral droit
+            'CML': (50, 200),  # Milieu central gauche
+            'CAM': (175, 170),  # Milieu offensif central
+            'CMR': (300, 200),  # Milieu central droit
+            'LW': (20, 50),  # Ailier gauche
+            'ST': (175, 20),  # Attaquant
+            'RW': (330, 50),  # Ailier droit
+        }
+    elif tactic == "442":
+        positions = {
 
-BUTTON_WIDTH = 100
-BUTTON_HEIGHT = 30
+        }
+    else:
+        print(f"Exception -> La tactique demandée '{tactic} 'n'est pas reconnue.")
 
-LOGO_WIDTH = 100
-LOGO_HEIGHT = 100
-
-TITLE_TEXT = "Caractéristiques souhaitées de l'équipe"
-TITLE_TEXT_STYLE = "font-size: 18px; font-weight: bold;"
-SUBTITLE_TEXT = "Répondez aux questions suivantes :"
-SUBMIT_BUTTON_TEXT = "Soumettre"
-
-QUESTION_TEXT = "Quel bloc souhaites-tu renforcer ?"
-QUESTION_CHOICES = ["Attaque", "Milieu", "Défense"]
-SUBTITLE_TEXT_STYLE = "font-size: 14px; font-style: italic;"
-
-MAIN_WINDOW_TITLE = "EA Sports FC 24"
-MAIN_WINDOW_SIZE = [900, 550]
-
-LOGO_PATH = "../assets/logo.png"
-MALE_PLAYERS_CSV_NAME = "male_players.csv"
-MALE_PLAYERS_SORTED_CSV_NAME = "male_players_sorted.csv"
-CSV_PATH = "../data/"
-
-# TDOO : Isoler les données de configuration dans plusieurs fichiers de configuration différents pour faciliter la
-#  maintenance du code
+    if position in positions:
+        return positions[position]
+    else:
+        print(f"Exception -> La position demandée '{position}' n'est pas reconnue.")
+        return None
