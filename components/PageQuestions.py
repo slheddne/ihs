@@ -3,8 +3,12 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox
 
 class PageQuestions(QWidget):
     def __init__(self):
+        """
+        Initialise la page de questions.
+        """
         super().__init__()
 
+        # Initialisation du layout vertical
         self.layout = QVBoxLayout()
         self.nbDefenseurs = 0
         self.nbMilieux = 0
@@ -30,11 +34,18 @@ class PageQuestions(QWidget):
         submit_button.clicked.connect(self.soumettre_reponses)
         self.layout.addWidget(submit_button)
 
+        # Étirement du layout
         self.layout.addStretch()
 
         self.setLayout(self.layout)
 
     def ajouter_question_menu_deroulant(self, question_text, choices):
+        """
+        Ajoute une question avec un menu déroulant à la page de questions.
+
+        :param question_text: Texte de la question.
+        :param choices: Choix disponibles dans le menu déroulant.
+        """
         # Ajouter une étiquette pour la question avec menu déroulant
         question_label = QLabel(question_text)
         self.layout.addWidget(question_label)
@@ -49,6 +60,11 @@ class PageQuestions(QWidget):
         self.layout.addSpacing(10)
 
     def selection_changed(self, index):
+        """
+        Gère le changement de sélection dans les menus déroulants.
+
+        :param index: Index de l'élément sélectionné dans le menu déroulant.
+        """
         # Fonction pour gérer le changement de sélection dans les menus déroulants
         sender = self.sender()
         if sender.currentText() == "Attaque":
@@ -58,6 +74,8 @@ class PageQuestions(QWidget):
         elif sender.currentText() == "Défense":
             print("Défense")
 
-    @staticmethod
     def soumettre_reponses(self):
+        """
+        Fonction exécutée lorsque le bouton 'Soumettre' est cliqué.
+        """
         print("Bouton 'Soumettre' cliqué.")
