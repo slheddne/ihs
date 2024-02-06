@@ -54,9 +54,9 @@ def trier_positions(data):
     Trie les positions des joueurs en fonction des blocs de jeu.
 
     :param data: DataFrame contenant les données des joueurs.
-    :return: DataFrame avec une colonne supplémentaire 'Blocs' indiquant le bloc de chaque joueur.
+    :return: DataFrame avec une colonne supplémentaire 'Bloc' indiquant le bloc de chaque joueur.
     """
-    data['Blocs'] = data['Position'].apply(
+    data['Bloc'] = data['Position'].apply(
         lambda pos: next((bloc for bloc, positions in BLOCS.items() if pos in positions), None))
     return data
 
@@ -83,7 +83,7 @@ def traiter_donnes():
 
     if data is not None:
         # Vérifier si les données ont déjà été traitées pour ne pas refaire le traitement à chaque fois
-        if 'Catégorie' not in data.columns and 'Blocs' not in data.columns:
+        if 'Catégorie' not in data.columns and 'Bloc' not in data.columns:
             # Catégoriser les joueurs
             data = categoriser_joueurs(data)
 
