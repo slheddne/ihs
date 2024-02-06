@@ -3,17 +3,105 @@ import logging
 import pandas as pd
 import requests
 from PyQt5.QtGui import QPixmap
-
-from config.image_urls import BASE_PLAYER_IMAGE_URL, PLAYER_IMAGE_SIZE
 from config.paths import MALE_PLAYERS_SORTED_CSV
 
 # Positions des joueurs pour différentes tactiques
 TACTIC_POSITIONS = {
+    #"433": {
+        #'GK': (175, 460), 'LB': (20, 360), 'CBL': (120, 380),
+        #'CBR': (230, 380), 'RB': (330, 360), 'CML': (50, 200),
+        #'CAM': (175, 170), 'CMR': (300, 200), 'LW': (20, 50),
+        #'ST': (175, 20), 'RW': (330, 50),
+   # },
+    "4231": {
+        "defenseur 1": (20, 400), # defenseur gauche
+        "defenseur 2": (140, 400),
+        "defenseur 3": (260, 400),
+        "defenseur 4": (380, 400),
+
+        "milieu defensif 1": (140, 300),
+        "milieu defensif 2": (260, 300),
+
+        "milieu offensif 1": (105, 200),
+        "milieu offensif 2": (200, 200),
+        "milieu offensif 3": (295, 200),
+
+        "attaquant": (200, 100),
+    },
+    "442 losange": {
+        "defenseur 1": (20, 400), # defenseur gauche
+        "defenseur 2": (140, 400),
+        "defenseur 3": (260, 400),
+        "defenseur 4": (380, 400),
+
+        "milieu 1": (200, 325),
+        "milieu 2": (140, 260),
+        "milieu 3": (260, 260),
+        "milieu 4": (200, 200),
+
+        "attaquant 1": (140, 125),
+        "attaquant 2": (260, 125),
+    },
+    "442 carré": {
+        "defenseur 1": (20, 400), # defenseur gauche
+        "defenseur 2": (140, 400),
+        "defenseur 3": (260, 400),
+        "defenseur 4": (380, 400),
+
+        "milieu 1": (20, 220),
+        "milieu 2": (140, 280),
+        "milieu 3": (260, 280),
+        "milieu 4": (380, 220),
+
+        "attaquant 1": (140, 125),
+        "attaquant 2": (260, 125),
+
+    },
     "433": {
-        'GK': (175, 460), 'LB': (20, 360), 'CBL': (120, 380),
-        'CBR': (230, 380), 'RB': (330, 360), 'CML': (50, 200),
-        'CAM': (175, 170), 'CMR': (300, 200), 'LW': (20, 50),
-        'ST': (175, 20), 'RW': (330, 50),
+        "defenseur 1": (20, 400), # defenseur gauche
+        "defenseur 2": (140, 400),
+        "defenseur 3": (260, 400),
+        "defenseur 4": (380, 400),
+
+        "milieu 1": (105, 260),
+        "milieu 2": (200, 260),
+        "milieu 3": (295, 260),
+
+
+        "attaquant 1": (105, 150),
+        "attaquant 2": (200, 150),
+        "attaquant 3": (295, 150)
+
+    },
+    "532": {
+        "defenseur 1": (20, 400), # defenseur gauche
+        "defenseur 2": (110, 400),
+        "defenseur 3": (200, 400),
+        "defenseur 4": (290, 400),
+        "defenseur 5": (380, 400),
+
+        "milieu 1": (105, 250),
+        "milieu 2": (200, 250),
+        "milieu 3": (295, 250),
+
+        "attaquant 1": (140, 150),
+        "attaquant 2": (260, 150)
+
+    },
+    "343": {
+        "defenseur 1": (20, 400), # defenseur gauche
+        "defenseur 2": (200,400),
+        "defenseur 3": (380, 400),
+
+        "milieu 1": (20, 220),
+        "milieu 2": (140, 280),
+        "milieu 3": (260, 280),
+        "milieu 4": (380, 220),
+
+        "attaquant 1": (105, 150),
+        "attaquant 2": (200, 150),
+        "attaquant 3": (295, 150)
+
     }
 }
 
@@ -52,18 +140,6 @@ def get_player(data, position):
     :return: Données du joueur pour la position donnée.
     """
     return data[data['Position'] == position]
-
-
-def convertir_urls(url):
-    """
-    Convertit l'URL d'un joueur pour obtenir son image.
-
-    :param url: URL du joueur.
-    :return: Nouvelle URL de l'image du joueur.
-    """
-    player_id = url.split('/')[-1]
-    player_url = f"{BASE_PLAYER_IMAGE_URL}p{player_id}.png.adapt.{PLAYER_IMAGE_SIZE}w.png"
-    return player_url
 
 
 def download_image(url):
