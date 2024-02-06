@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import requests
 from PyQt5.QtGui import QPixmap
+from config.paths import MALE_PLAYERS_SORTED_CSV
 
 # Positions des joueurs pour différentes tactiques
 TACTIC_POSITIONS = {
@@ -77,7 +78,7 @@ def dessiner_image(painter, tactic, position):
     position_csv = POSITION_MAPPING.get(position, position)
 
     # Charger les données depuis le fichier CSV
-    data = pd.read_csv("../data/male_players_sorted.csv")
+    data = pd.read_csv(MALE_PLAYERS_SORTED_CSV)
 
     # Récupérer l'URL de l'image du joueur pour le poste spécifié
     player = get_player(data, position_csv)
