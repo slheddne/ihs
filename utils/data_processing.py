@@ -1,10 +1,10 @@
 import pandas as pd
 
 from config.categories import CATEGORIES
-from config.image_urls import BASE_PLAYER_IMAGE_URL, PLAYER_IMAGE_SIZE
 from config.logging_config import logger
 from config.paths import MALE_PLAYERS_CSV, MALE_PLAYERS_SORTED_CSV
 from config.player_blocks import BLOCS
+from utils.utils import convertir_urls
 
 
 def charger_donnees():
@@ -35,18 +35,6 @@ def categoriser_joueurs(data):
     points_de_coupe = [0] + [overall_values.quantile(value) for value in CATEGORIES.values()]
     data['Catégorie'] = pd.cut(overall_values, bins=points_de_coupe, labels=CATEGORIES.keys(), right=False)
     return data
-
-
-def convertir_urls(url):
-    """
-    Convertit l'URL d'un joueur pour obtenir son image.
-
-    :param url: URL du joueur.
-    :return: Nouvelle URL de l'image du joueur.
-    """
-    player_id = url.split('/')[-1]
-    player_url = f"{BASE_PLAYER_IMAGE_URL}p{player_id}.png.adapt.{PLAYER_IMAGE_SIZE}w.png"
-    return player_url
 
 
 def trier_positions(data):
@@ -97,16 +85,3 @@ def traiter_donnes():
             nouveau_fichier_csv = MALE_PLAYERS_SORTED_CSV
             sauvegarder_donnees(data, nouveau_fichier_csv)
             logger.info(f"Les données ont été traitées et enregistrées dans : {nouveau_fichier_csv}.")
-
-
-def get_player(data, position):
-    """
-    Récupère un joueur aléatoire pour une position donnée.
-
-    :param data: DataFrame contenant les données des joueurs.
-    :param position: Position du joueur.
-    :return: DataFrame contenant les données d'un joueur pour la position donnée.
-    """
-    filtered_data = data[data['Position'] == position]
-    player_entry = filtered_data.sample()
-    return player_entry

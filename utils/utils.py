@@ -3,6 +3,8 @@ import logging
 import pandas as pd
 import requests
 from PyQt5.QtGui import QPixmap
+
+from config.image_urls import BASE_PLAYER_IMAGE_URL, PLAYER_IMAGE_SIZE
 from config.paths import MALE_PLAYERS_SORTED_CSV
 
 # Positions des joueurs pour différentes tactiques
@@ -50,6 +52,18 @@ def get_player(data, position):
     :return: Données du joueur pour la position donnée.
     """
     return data[data['Position'] == position]
+
+
+def convertir_urls(url):
+    """
+    Convertit l'URL d'un joueur pour obtenir son image.
+
+    :param url: URL du joueur.
+    :return: Nouvelle URL de l'image du joueur.
+    """
+    player_id = url.split('/')[-1]
+    player_url = f"{BASE_PLAYER_IMAGE_URL}p{player_id}.png.adapt.{PLAYER_IMAGE_SIZE}w.png"
+    return player_url
 
 
 def download_image(url):
