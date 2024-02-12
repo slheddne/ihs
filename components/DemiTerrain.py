@@ -62,3 +62,6 @@ class DemiTerrain(QWidget):
         # Dessiner les cages
         painter.drawRect(135, 10, 130, 40)  # Cage du haut
         painter.drawRect(135, 480, 130, 40)  # Cage du bas
+
+
+

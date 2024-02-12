@@ -3,113 +3,11 @@ import logging
 import pandas as pd
 import requests
 from PyQt5.QtGui import QPixmap
+
+from config.categories import CATEGORIES
 from config.paths import MALE_PLAYERS_SORTED_CSV
-
-# Positions des joueurs pour différentes tactiques
-TACTIC_POSITIONS = {
-    #"433": {
-        #'GK': (175, 460), 'LB': (20, 360), 'CBL': (120, 380),
-        #'CBR': (230, 380), 'RB': (330, 360), 'CML': (50, 200),
-        #'CAM': (175, 170), 'CMR': (300, 200), 'LW': (20, 50),
-        #'ST': (175, 20), 'RW': (330, 50),
-   # },
-    "4231": {
-        "defenseur 1": (20, 400), # defenseur gauche
-        "defenseur 2": (140, 400),
-        "defenseur 3": (260, 400),
-        "defenseur 4": (380, 400),
-
-        "milieu defensif 1": (140, 300),
-        "milieu defensif 2": (260, 300),
-
-        "milieu offensif 1": (105, 200),
-        "milieu offensif 2": (200, 200),
-        "milieu offensif 3": (295, 200),
-
-        "attaquant": (200, 100),
-    },
-    "442 losange": {
-        "defenseur 1": (20, 400), # defenseur gauche
-        "defenseur 2": (140, 400),
-        "defenseur 3": (260, 400),
-        "defenseur 4": (380, 400),
-
-        "milieu 1": (200, 325),
-        "milieu 2": (140, 260),
-        "milieu 3": (260, 260),
-        "milieu 4": (200, 200),
-
-        "attaquant 1": (140, 125),
-        "attaquant 2": (260, 125),
-    },
-    "442 carré": {
-        "defenseur 1": (20, 400), # defenseur gauche
-        "defenseur 2": (140, 400),
-        "defenseur 3": (260, 400),
-        "defenseur 4": (380, 400),
-
-        "milieu 1": (20, 220),
-        "milieu 2": (140, 280),
-        "milieu 3": (260, 280),
-        "milieu 4": (380, 220),
-
-        "attaquant 1": (140, 125),
-        "attaquant 2": (260, 125),
-
-    },
-    "433": {
-        "defenseur 1": (20, 400), # defenseur gauche
-        "defenseur 2": (140, 400),
-        "defenseur 3": (260, 400),
-        "defenseur 4": (380, 400),
-
-        "milieu 1": (105, 260),
-        "milieu 2": (200, 260),
-        "milieu 3": (295, 260),
-
-
-        "attaquant 1": (105, 150),
-        "attaquant 2": (200, 150),
-        "attaquant 3": (295, 150)
-
-    },
-    "532": {
-        "defenseur 1": (20, 400), # defenseur gauche
-        "defenseur 2": (110, 400),
-        "defenseur 3": (200, 400),
-        "defenseur 4": (290, 400),
-        "defenseur 5": (380, 400),
-
-        "milieu 1": (105, 250),
-        "milieu 2": (200, 250),
-        "milieu 3": (295, 250),
-
-        "attaquant 1": (140, 150),
-        "attaquant 2": (260, 150)
-
-    },
-    "343": {
-        "defenseur 1": (20, 400), # defenseur gauche
-        "defenseur 2": (200,400),
-        "defenseur 3": (380, 400),
-
-        "milieu 1": (20, 220),
-        "milieu 2": (140, 280),
-        "milieu 3": (260, 280),
-        "milieu 4": (380, 220),
-
-        "attaquant 1": (105, 150),
-        "attaquant 2": (200, 150),
-        "attaquant 3": (295, 150)
-
-    }
-}
-
-# Mappage des positions des joueurs, utile pour les noms de colonnes dans le fichier CSV
-POSITION_MAPPING = {
-    'GK': 'GK', 'LB': 'LB', 'CBL': 'CB', 'CBR': 'CB', 'RB': 'RB',
-    'CML': 'CM', 'CAM': 'CAM', 'CMR': 'CM', 'LW': 'LW', 'ST': 'ST', 'RW': 'RW'
-}
+from config.player_blocks import BLOCS
+from config.tactics import TACTIC_POSITIONS, POSITION_BLOCK_MAPPING
 
 
 def get_player_position(tactic, position):
@@ -165,23 +63,56 @@ def dessiner_image(painter, tactic, position):
     :param tactic: Tactique de jeu.
     :param position: Position du joueur.
     """
-    position_csv = POSITION_MAPPING.get(position, position)
-
     # Charger les données depuis le fichier CSV
     data = pd.read_csv(MALE_PLAYERS_SORTED_CSV)
 
-    # Récupérer l'URL de l'image du joueur pour le poste spécifié
-    player = get_player(data, position_csv)
+    # Récupérer les coordonnées (x, y) de la position du joueur sur le terrain
+    position_x, position_y = get_player_position(tactic, position)
 
-    if not player.empty:
-        # Télécharger l'image depuis l'URL
-        image_data = download_image(player['URL'].values[0])
-        if image_data:
-            # Convertir l'image téléchargée en QPixmap
-            image = QPixmap()
-            image.loadFromData(image_data)
+    if position_x is not None and position_y is not None:
+        # Récupérer les données du joueur pour la position spécifiée
+        player = get_player(data, position)
 
-            # Dessiner l'image à l'emplacement spécifié
-            position_x, position_y = get_player_position(tactic, position)
-            if position_x is not None and position_y is not None:
+        if not player.empty:
+            # Télécharger l'image depuis l'URL
+            image_data = download_image(player['URL'].values[0])
+            if image_data:
+                # Convertir l'image téléchargée en QPixmap
+                image = QPixmap()
+                image.loadFromData(image_data)
+
+                # Dessiner l'image à l'emplacement spécifié
                 painter.drawPixmap(position_x, position_y, image)
+
+
+def filter_players(block, category):
+    data = pd.read_csv(MALE_PLAYERS_SORTED_CSV)
+    if block not in BLOCS or category not in CATEGORIES:
+        logging.error("Exception -> Bloc ou catégorie invalide.")
+        return pd.DataFrame()
+    return data[(data['Bloc'] == block) & (data['Catégorie'] == category)]
+
+
+def get_random_player(block, category):
+    filtered_players = filter_players(block, category)
+    if not filtered_players.empty:
+        return filtered_players.sample(n=1)
+    else:
+        logging.error("Exception -> Aucun joueur éligible trouvé.")
+        return None
+
+
+def generate_team(tactic, difficulty):
+    if tactic not in TACTIC_POSITIONS:
+        logging.error("Exception -> Tactique invalide.")
+        return None
+
+    team = []
+    for position, (x, y) in TACTIC_POSITIONS[tactic].items():
+        position_type = position.split()[0]  # Récupérer le type de position
+        block = POSITION_BLOCK_MAPPING.get(position_type)
+        if block:
+            player = get_random_player(block, difficulty)
+            if player is not None:
+                team.append(player)
+    return team

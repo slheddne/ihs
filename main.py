@@ -8,20 +8,22 @@ from PyQt5.QtWidgets import QApplication, QWidget, QHBoxLayout, QLabel, QVBoxLay
 from components.DemiTerrain import DemiTerrain
 from components.PageQuestions import PageQuestions
 from config.logging_config import logger
-from config.paths import MALE_PLAYERS_SORTED_CSV, FOOTBALL_TEAMS, FOOTBALL_TEAMS_SORTED
-from utils.data_processing import traiter_donnees_joueurs, traiter_donnees_equipes
+from config.paths import MALE_PLAYERS_SORTED_CSV, FOOTBALL_TEAMS_SORTED
+from processors.PlayerDataProcessor import process_player_data
+from processors.TeamDataProcessor import process_team_data
 
 if __name__ == "__main__":
     # Vérifier si le fichier traité existe déjà
     if not os.path.exists(MALE_PLAYERS_SORTED_CSV):
         # Traitement des données si le fichier n'existe pas
-        traiter_donnees_joueurs()
+        process_player_data()
+
     else:
         logger.info(f"Le fichier {MALE_PLAYERS_SORTED_CSV} existe déjà. Le traitement n'est pas nécessaire.")
 
     if not os.path.exists(FOOTBALL_TEAMS_SORTED):
         # Traitement des données si le fichier n'existe pas
-        traiter_donnees_equipes()
+        process_team_data()
     else:
         logger.info(f"Le fichier {FOOTBALL_TEAMS_SORTED} existe déjà. Le traitement n'est pas nécessaire.")
 

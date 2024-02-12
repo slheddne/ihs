@@ -34,12 +34,14 @@ class PageQuestions(QWidget):
         self.layout.addWidget(submit_button)
         self.soumettre_reponses()
 
+        # Niveau de jeu
+        self.ajouter_question_menu_deroulant('Niveau de jeu', ["Facile", "Moyen", "Difficile", "Expert"])
+        self.soumettre_reponses()
+
         # Étirement du layout
         self.layout.addStretch()
 
         self.setLayout(self.layout)
-
-
 
     def ajouter_question_menu_deroulant(self, question_text, choices):
         """
@@ -83,14 +85,14 @@ class PageQuestions(QWidget):
         :param reponse_question_precedente: Réponse à la première question.
         """
         if reponse_question_precedente == "Attaque":
-            self.layout.addSpacing(10)
+            # self.layout.addSpacing(10)
             self.ajouter_question_menu_deroulant("Veux-tu attaquer tout en étant prêt à défendre?", ["Oui", "Non"])
         elif reponse_question_precedente == "Milieu":
-            self.layout.addSpacing(10)
+            # self.layout.addSpacing(10)
             self.ajouter_question_menu_deroulant("Veux-tu un milieu offensif ou défensif?", ["Offensif", "défensif"])
 
         elif reponse_question_precedente == "Défense":
-            self.layout.addSpacing(10)
+            # self.layout.addSpacing(10)
             self.ajouter_question_menu_deroulant("Souhaites-tu un poste de libero (couverture de la défense)?", ["Oui", "Non"])
 
         # Bouton pour soumettre les réponses
@@ -111,8 +113,12 @@ class PageQuestions(QWidget):
             # Ajouter la deuxième question en fonction de la réponse à la première question
             self.ajouter_question_suivante(selected_text)
 
-
-
         print("Bouton 'Soumettre' cliqué.")
 
-
+    def desactiver_niveaux(self):
+        """
+        Désactiver les niveaux de jeu supérieurs à Facile jusqu'à ce que l'utilisateur gagne son match.
+        """
+        # Désactiver les niveaux de jeu supérieurs à Facile
+        for i in range(1, self.niveau_combobox.count()):
+            self.niveau_combobox.setItemData(i, False)
