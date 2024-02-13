@@ -71,9 +71,12 @@ def get_random_player(block, category):
         return None
 
 
-def generate_team(tactic, difficulty):
+def generate_team(tactic, category):
     if tactic not in TACTIC_POSITIONS:
         logging.error("Exception -> Tactique invalide.")
+        return None
+    if category not in CATEGORIES:
+        logging.error("Exception -> Catégorie invalide.")
         return None
 
     team = []
@@ -81,7 +84,7 @@ def generate_team(tactic, difficulty):
         position_type = position.split()[0]  # Récupérer le type de position
         block = POSITION_BLOCK_MAPPING.get(position_type)
         if block:
-            player = get_random_player(block, difficulty)
+            player = get_random_player(block, category)
             if player is not None:
                 team.append(player)
     return team
