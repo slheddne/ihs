@@ -10,36 +10,6 @@ from config.player_blocks import BLOCS
 from config.tactics import TACTIC_POSITIONS, POSITION_BLOCK_MAPPING
 
 
-def get_player_position(tactic, position):
-    """
-    Récupère la position du joueur sur le terrain en fonction de la tactique.
-
-    :param tactic: Tactique de jeu (par ex. "433").
-    :param position: Position du joueur (par ex. "GK").
-    :return: Coordonnées (x, y) de la position du joueur sur le terrain.
-    """
-    positions = TACTIC_POSITIONS.get(tactic)
-    if positions is None:
-        logging.error(f"Exception -> La tactique demandée '{tactic}' n'est pas reconnue.")
-        return None
-    if position in positions:
-        return positions[position]
-    else:
-        logging.error(f"Exception -> La position demandée '{position}' n'est pas reconnue.")
-        return None
-
-
-def get_player(data, position):
-    """
-    Récupère les données du joueur pour une position donnée.
-
-    :param data: Données des joueurs.
-    :param position: Position du joueur.
-    :return: Données du joueur pour la position donnée.
-    """
-    return data[data['Position'] == position]
-
-
 def download_image(url):
     """
     Télécharge une image à partir de l'URL spécifiée.
@@ -55,34 +25,33 @@ def download_image(url):
         return None
 
 
-def dessiner_image(painter, tactic, position):
+def dessiner_image(painter, player_index, tactic, player):
     """
-    Dessine l'image d'un joueur à une position spécifique sur le terrain.
+    Dessine l'image d'un joueur à sa position spécifique sur le terrain en fonction de la tactique.
 
     :param painter: Objet pour dessiner.
+    :param player_index: Index du joueur dans l'équipe.
     :param tactic: Tactique de jeu.
-    :param position: Position du joueur.
+    :param player: Joueur à dessiner.
     """
-    # Charger les données depuis le fichier CSV
-    data = pd.read_csv(MALE_PLAYERS_SORTED_CSV)
-
-    # Récupérer les coordonnées (x, y) de la position du joueur sur le terrain
-    position_x, position_y = get_player_position(tactic, position)
-
-    if position_x is not None and position_y is not None:
-        # Récupérer les données du joueur pour la position spécifiée
-        player = get_player(data, position)
-
-        if not player.empty:
+    # Parcourir les positions et joueurs de la tactique
+    for position, (position_x, position_y) in TACTIC_POSITIONS[tactic].items():
+        if player_index == 0:
             # Télécharger l'image depuis l'URL
-            image_data = download_image(player['URL'].values[0])
+            image_data = download_image(player['URL'])
             if image_data:
-                # Convertir l'image téléchargée en QPixmap
-                image = QPixmap()
-                image.loadFromData(image_data)
+                try:
+                    # Convertir l'image téléchargée en QPixmap
+                    image = QPixmap()
+                    image.loadFromData(image_data)
 
-                # Dessiner l'image à l'emplacement spécifié
-                painter.drawPixmap(position_x, position_y, image)
+                    # Dessiner l'image à l'emplacement spécifié
+                    painter.drawPixmap(position_x, position_y, image)
+                    break  # Arrêter la boucle une fois le joueur dessiné
+                except Exception as e:
+                    logging.error("Exception lors du chargement de l'image : %s", e)
+        else:
+            player_index -= 1  # Décrémenter l'index si ce n'est pas le joueur actuel
 
 
 def filter_players(block, category):
@@ -96,7 +65,7 @@ def filter_players(block, category):
 def get_random_player(block, category):
     filtered_players = filter_players(block, category)
     if not filtered_players.empty:
-        return filtered_players.sample(n=1)
+        return filtered_players.sample(n=1).iloc[0].to_dict()
     else:
         logging.error("Exception -> Aucun joueur éligible trouvé.")
         return None

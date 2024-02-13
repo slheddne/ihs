@@ -39,12 +39,16 @@ if __name__ == "__main__":
     # Création de la mise en page principale
     layout_principal = QHBoxLayout(main_window)
 
+    # Création de l'instance de DemiTerrain
+    demi_terrain = DemiTerrain()
+
+    # Création de l'instance de PageQuestions avec demi_terrain comme argument
+    page_questions = PageQuestions(demi_terrain)
+
     # Ajout du composant de dessin du terrain à gauche
-    dessin_demi_terrain = DemiTerrain()
-    layout_principal.addWidget(dessin_demi_terrain)
+    layout_principal.addWidget(demi_terrain)
 
     # Ajout du composant de questions à droite
-    page_questions = PageQuestions()
     layout_principal.addWidget(page_questions)
 
     # Ajout du logo en haut à droite

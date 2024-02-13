@@ -1,6 +1,8 @@
 from PyQt5.QtGui import QPainter, QLinearGradient, QColor, QPen
 from PyQt5.QtWidgets import QWidget
 
+from utils.utils import dessiner_image
+
 
 class DemiTerrain(QWidget):
     def __init__(self):
@@ -9,59 +11,58 @@ class DemiTerrain(QWidget):
         """
         super().__init__()
         self.setMinimumSize(400, 500)
+        self.team = None
+        self.tactic = ""
 
     def paintEvent(self, event):
         """
         Événement de peinture, appelé lorsque le widget a besoin d'être redessiné.
+        :param event: Événement de peinture.
         """
         painter = QPainter(self)
-
-        # Dessiner le fond vert dégradé
         self.dessiner_fond_vert_degrade(painter)
-
-        # Dessiner le demi-terrain
         self.dessiner_demi_terrain(painter)
+        if self.team is not None and self.tactic:  # Vérifier si l'équipe et la tactique sont définies
+            self.dessiner_joueurs(painter)
 
     def dessiner_fond_vert_degrade(self, painter):
         """
-        Dessine un fond vert dégradé sur le widget.
-
-        :param painter: Objet QPainter pour dessiner.
+        Dessine le fond vert dégradé.
+        :param painter: Objet pour dessiner.
         """
-        # Créer un dégradé vertical
         gradient = QLinearGradient(0, 0, 0, self.height())
         gradient.setColorAt(0, QColor(0, 150, 0))  # Vert foncé en haut
         gradient.setColorAt(1, QColor(0, 210, 0))  # Vert clair en bas
-
-        # Appliquer le dégradé comme brosse pour le peintre
         painter.setBrush(gradient)
-
-        # Dessiner un rectangle rempli avec le dégradé
         painter.drawRect(0, 0, self.width(), self.height())
 
-    @staticmethod
-    def dessiner_demi_terrain(painter):
+    def dessiner_demi_terrain(self, painter):
         """
-        Dessine le demi-terrain de football.
-
-        :param painter: Objet QPainter pour dessiner.
+        Dessine le terrain de football.
+        :param painter: Objet pour dessiner.
         """
-        # Stylo pour les lignes
         pen = QPen(QColor(255, 255, 255), 2)
         painter.setPen(pen)
-
-        # Dessiner le rectangle du terrain
         painter.drawRect(10, 10, 380, 510)
-
-        # Dessiner le cercle central
         painter.drawEllipse(165, 225, 70, 70)
-
-        # Dessiner le trait du milieu
         painter.drawLine(10, 260, 390, 260)
-
-        # Dessiner les cages
         painter.drawRect(135, 10, 130, 40)  # Cage du haut
         painter.drawRect(135, 480, 130, 40)  # Cage du bas
 
+    def dessiner_joueurs(self, painter):
+        """
+        Dessine les joueurs sur le terrain un par un en fonction de la tactique.
+        :param painter: Objet pour dessiner.
+        """
+        for player_index, player in enumerate(self.team):
+            dessiner_image(painter, player_index, self.tactic, player)
 
-
+    def set_team_and_tactic(self, team, tactic):
+        """
+        Met à jour l'équipe et la tactique à dessiner.
+        :param team: Liste des joueurs de l'équipe.
+        :param tactic: La tactique.
+        """
+        self.team = team
+        self.tactic = tactic
+        self.update()
