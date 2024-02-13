@@ -49,7 +49,7 @@ def dessiner_image(painter, player_index, tactic, player):
                     painter.drawPixmap(position_x, position_y, image)
                     break  # Arrêter la boucle une fois le joueur dessiné
                 except Exception as e:
-                    logging.error("Exception lors du chargement de l'image : %s", e)
+                    logging.error("Exception -> Le chargement de l'image a échoué : %s", e)
         else:
             player_index -= 1  # Décrémenter l'index si ce n'est pas le joueur actuel
 
