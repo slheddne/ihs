@@ -1,5 +1,3 @@
-import os
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout
@@ -7,20 +5,12 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QVBoxLayout
 from components.DemiTerrain import DemiTerrain
 from components.PageQuestions import PageQuestions
 from config.logging_config import logger
-from config.paths import MALE_PLAYERS_SORTED_CSV, LOGO_PATH
-from utils.data_processing import traiter_donnes
+from config.paths import LOGO_PATH
 
 
 class FenetrePrincipale(QWidget):
     def __init__(self):
         super().__init__()
-
-        # Vérifier si le fichier traité existe déjà
-        if not os.path.exists(MALE_PLAYERS_SORTED_CSV):
-            # Traitement des données si le fichier n'existe pas
-            traiter_donnes()
-        else:
-            logger.info(f"Le fichier {MALE_PLAYERS_SORTED_CSV} existe déjà. Le traitement n'est pas nécessaire.")
 
         self.setWindowTitle("EA Sports FC 24")
         self.setGeometry(100, 100, 900, 550)
