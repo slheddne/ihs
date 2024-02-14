@@ -2,68 +2,13 @@ import logging
 
 import pandas as pd
 import requests
-from PyQt5.QtGui import QPixmap
 
-from config.image_urls import BASE_PLAYER_IMAGE_URL, PLAYER_IMAGE_SIZE
-from config.paths import MALE_PLAYERS_SORTED_CSV
-
-# Positions des joueurs pour différentes tactiques
-TACTIC_POSITIONS = {
-    "433": {
-        'GK': (175, 460), 'LB': (20, 360), 'CBL': (120, 380),
-        'CBR': (230, 380), 'RB': (330, 360), 'CML': (50, 200),
-        'CAM': (175, 170), 'CMR': (300, 200), 'LW': (20, 50),
-        'ST': (175, 20), 'RW': (330, 50),
-    }
-}
-
-# Mappage des positions des joueurs, utile pour les noms de colonnes dans le fichier CSV
-POSITION_MAPPING = {
-    'GK': 'GK', 'LB': 'LB', 'CBL': 'CB', 'CBR': 'CB', 'RB': 'RB',
-    'CML': 'CM', 'CAM': 'CAM', 'CMR': 'CM', 'LW': 'LW', 'ST': 'ST', 'RW': 'RW'
-}
-
-
-def get_player_position(tactic, position):
-    """
-    Récupère la position du joueur sur le terrain en fonction de la tactique.
-
-    :param tactic: Tactique de jeu (par ex. "433").
-    :param position: Position du joueur (par ex. "GK").
-    :return: Coordonnées (x, y) de la position du joueur sur le terrain.
-    """
-    positions = TACTIC_POSITIONS.get(tactic)
-    if positions is None:
-        logging.error(f"Exception -> La tactique demandée '{tactic}' n'est pas reconnue.")
-        return None
-    if position in positions:
-        return positions[position]
-    else:
-        logging.error(f"Exception -> La position demandée '{position}' n'est pas reconnue.")
-        return None
-
-
-def get_player(data, position):
-    """
-    Récupère les données du joueur pour une position donnée.
-
-    :param data: Données des joueurs.
-    :param position: Position du joueur.
-    :return: Données du joueur pour la position donnée.
-    """
-    return data[data['Position'] == position]
-
-
-def convertir_urls(url):
-    """
-    Convertit l'URL d'un joueur pour obtenir son image.
-
-    :param url: URL du joueur.
-    :return: Nouvelle URL de l'image du joueur.
-    """
-    player_id = url.split('/')[-1]
-    player_url = f"{BASE_PLAYER_IMAGE_URL}p{player_id}.png.adapt.{PLAYER_IMAGE_SIZE}w.png"
-    return player_url
+from config.categories import CATEGORIES
+from config.paths import MALE_PLAYERS_SORTED_CSV, FOOTBALL_TEAMS_SORTED
+from config.player_blocks import BLOCS
+from config.tactics import TACTIC_POSITIONS, POSITION_BLOCK_MAPPING
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtGui import QPainter, QPixmap, QFont
 
 
 def download_image(url):
@@ -81,31 +26,106 @@ def download_image(url):
         return None
 
 
-def dessiner_image(painter, tactic, position):
+def dessiner_image(painter, player_index, tactic, player):
     """
-    Dessine l'image d'un joueur à une position spécifique sur le terrain.
+    Dessine l'image d'un joueur à sa position spécifique sur le terrain en fonction de la tactique et ajoute le nom du joueur.
 
     :param painter: Objet pour dessiner.
+    :param player_index: Index du joueur dans l'équipe.
     :param tactic: Tactique de jeu.
-    :param position: Position du joueur.
+    :param player: Joueur à dessiner.
     """
-    position_csv = POSITION_MAPPING.get(position, position)
+    # Supposons que la taille de l'image soit 50x50 pixels
+    taille_image = 50
+    marge_texte = 5  # Marge entre l'image et le texte
 
-    # Charger les données depuis le fichier CSV
+    for position, (position_x, position_y) in TACTIC_POSITIONS[tactic].items():
+        if player_index == 0:
+            # Télécharger l'image depuis l'URL
+            image_data = download_image(player['URL'])
+            if image_data:
+                try:
+                    # Convertir l'image téléchargée en QPixmap
+                    image = QPixmap()
+                    image.loadFromData(image_data)
+
+                    # Dessiner l'image à l'emplacement spécifié
+                    painter.drawPixmap(position_x, position_y, taille_image, taille_image, image)
+
+                    # Configurer la police pour le texte
+                    painter.setFont(QFont('Arial', 6))
+
+                    # Calculer la position du texte (en dessous de l'image)
+                    texte_x = position_x
+                    texte_y = position_y + taille_image + marge_texte
+
+                    # Dessiner le nom du joueur
+                    painter.drawText(QRect(texte_x, texte_y, taille_image, 20), Qt.AlignCenter, player['Name'])
+
+                    break  # Arrêter la boucle une fois le joueur dessiné
+                except Exception as e:
+                    logging.error("Exception -> Le chargement de l'image a échoué : %s", e)
+        else:
+            player_index -= 1  # Décrémenter l'index si ce n'est pas le joueur actuel
+
+
+
+
+
+def filter_players(block, category):
     data = pd.read_csv(MALE_PLAYERS_SORTED_CSV)
+    if block not in BLOCS or category not in CATEGORIES:
+        logging.error("Exception -> Bloc ou catégorie invalide.")
+        return pd.DataFrame()
+    return data[(data['Bloc'] == block) & (data['Catégorie'] == category)]
 
-    # Récupérer l'URL de l'image du joueur pour le poste spécifié
-    player = get_player(data, position_csv)
 
-    if not player.empty:
-        # Télécharger l'image depuis l'URL
-        image_data = download_image(player['URL'].values[0])
-        if image_data:
-            # Convertir l'image téléchargée en QPixmap
-            image = QPixmap()
-            image.loadFromData(image_data)
+def get_random_player(block, category):
+    filtered_players = filter_players(block, category)
+    if not filtered_players.empty:
+        return filtered_players.sample(n=1).iloc[0].to_dict()
+    else:
+        logging.error("Exception -> Aucun joueur éligible trouvé.")
+        return None
 
-            # Dessiner l'image à l'emplacement spécifié
-            position_x, position_y = get_player_position(tactic, position)
-            if position_x is not None and position_y is not None:
-                painter.drawPixmap(position_x, position_y, image)
+
+def generate_team(tactic, category):
+    if tactic not in TACTIC_POSITIONS:
+        logging.error("Exception -> Tactique invalide.")
+        return None
+    if category not in CATEGORIES:
+        logging.error("Exception -> Catégorie invalide.")
+        return None
+
+    team = []
+    for position, (x, y) in TACTIC_POSITIONS[tactic].items():
+        position_type = position.split()[0]  # Récupérer le type de position
+        block = POSITION_BLOCK_MAPPING.get(position_type)
+        if block:
+            player = get_random_player(block, category)
+            if player is not None:
+                team.append(player)
+    return team
+
+def filter_team(category):
+    data = pd.read_csv(FOOTBALL_TEAMS_SORTED)
+    if category not in CATEGORIES:
+        logging.error("Exception -> Catégorie invalide.")
+        return pd.DataFrame()
+    return data[(data['Catégorie'] == category)]
+
+def get_random_team(category):
+    filtered_team = filter_team(category)
+    if not filtered_team.empty:
+        return filtered_team.sample(n=1).iloc[0].to_dict()["Team"]
+    else:
+        logging.error("Exception -> Aucune équipe éligible trouvé.")
+        return None
+
+#def main():
+    # Appeler la fonction generer_equipe_adverse()
+    #equipe_adverse = get_random_team("Facile")
+    #return print("Vous allez jouer contre",equipe_adverse)
+
+#if __name__ == "__main__":
+    #main()
