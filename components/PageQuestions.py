@@ -1,24 +1,57 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QComboBox
-import random
+from PyQt5.QtWidgets import QVBoxLayout, QWidget, QLabel, QPushButton, QComboBox
+
 from utils.utils import generate_team
-from config.tactics import TACTIC_POSITIONS, POSITION_BLOCK_MAPPING
+from utils.utils import get_random_team
+
 
 class PageQuestions(QWidget):
-    def __init__(self):
+    def __init__(self, demi_terrain_widget):
         """
         Initialise la page de questions.
+        :param demi_terrain_widget: Référence à l'instance de DemiTerrain pour mettre à jour l'équipe générée.
         """
         super().__init__()
-
+        self.setStyleSheet("""
+                    Qlabel {
+                        font-size: 16px;
+                        color: #333;
+                    }
+                    QPushButton {
+                        background-color: #4CAF50;
+                        border: none;
+                        color: white;
+                        padding: 10px 24px;
+                        text-align: center;
+                        text-decoration: none;
+                        display: inline-block;
+                        font-size: 16px;
+                        margin: 4px 2px;
+                        cursor: pointer;
+                        border-radius: 8px;
+                    }
+                    QPushButton:hover {
+                        background-color: #45a049;
+                    }
+                """)
         # Initialisation du layout vertical
         self.layout = QVBoxLayout()
         self.nbDefenseurs = 0
         self.nbMilieux = 0
         self.nbAttaquants = 0
 
-        self.compteurQuestions = 1  # Ajout d'un attribut pour suivre le nombre de questions posées
+        # Garder une référence à l'équipe générée
+        self.team = None
+
+        # Garder une référence à DemiTerrain
+        self.demi_terrain_widget = demi_terrain_widget
+
+        # Ajout d'un attribut pour suivre le nombre de questions posées
+        self.compteurQuestions = 1
 
         self.tactic = ""
+        self.bloc_a_ameliorer = ""
+        self.systeme_jeu = ""
+        self.niveau = ""
 
         # Initialisation du schéma tactique en fonction des réponses
         self.tactic_mapping = {
@@ -30,8 +63,6 @@ class PageQuestions(QWidget):
             ("Défense", "Non"): "343"
         }
 
-        self.error_label = QLabel()
-
         # Titre
         title_label = QLabel("Caractéristiques souhaitées de l'équipe")
         title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
@@ -42,184 +73,170 @@ class PageQuestions(QWidget):
         subtitle_label.setStyleSheet("font-size: 14px; font-style: italic;")
         self.layout.addWidget(subtitle_label)
 
-        # Questions
-        self.ajouter_question_menu_deroulant("Quel bloc souhaites-tu renforcer ?", ["Attaque", "Milieu", "Défense"])
+        # Label pour la première question
+        self.label_question_1 = QLabel("Quel bloc souhaites-tu renforcer ?")
+        self.layout.addWidget(self.label_question_1)
+
+        # Combobox pour poser la première question
+        self.combo_question_1 = QComboBox()
+        self.combo_question_1.addItems(["", "Attaque", "Milieu", "Défense"])
+        self.combo_question_1.currentIndexChanged.connect(self.question_1_selectionnee)
+        self.layout.addWidget(self.combo_question_1)
+
+        # Label pour la deuxième question
+        self.label_question_2 = QLabel("Veuillez répondre à la première question")
+        self.layout.addWidget(self.label_question_2)
+
+        # Combobox pour poser la deuxième question
+        self.combo_question_2 = QComboBox()
+        self.combo_question_2.addItems([""])  # Initialiser avec une option vide
+        self.combo_question_2.setEnabled(False)  # Désactiver la combobox
+        self.combo_question_2.currentIndexChanged.connect(self.question_2_selectionnee)
+        self.layout.addWidget(self.combo_question_2)
+
+        # Label pour la troisième question
+        self.label_question_3 = QLabel("Niveau")
+        self.layout.addWidget(self.label_question_3)
+
+        # Combobox pour choisir le niveau
+        self.combo_niveau = QComboBox()
+        self.combo_niveau.addItems(["", "Facile", "Moyen", "Difficile", "Expert"])
+        self.combo_niveau.setEnabled(False)  # Désactiver la combobox
+        self.layout.addWidget(self.combo_niveau)
+
         # Bouton pour soumettre les réponses
-        submit_button = QPushButton("Soumettre")
-        submit_button.clicked.connect(self.soumettre_reponses)
-        self.layout.addWidget(submit_button)
-        self.soumettre_reponses()
+        self.submit_button = QPushButton("Générer")
+        self.submit_button.clicked.connect(self.soumettre_reponses)
+        self.submit_button.setEnabled(False)  # Désactiver le bouton de soumission
+        self.layout.addWidget(self.submit_button)
 
+        # Générer la team adverse
+        self.label_question_4 = QLabel("Equipe adverse")
+        self.layout.addWidget(self.label_question_4)
 
-        # Niveau de jeu
-        self.ajouter_question_menu_deroulant('Niveau de jeu', ["Facile", "Moyen", "Difficile", "Expert"])
+        self.submit_button2 = QPushButton("Générer")
+        self.submit_button2.clicked.connect(self.generer_equipe_adverse)
+        self.layout.addWidget(self.submit_button2)
 
+        self.label_equipe_adverse = QLabel("Aucune équipe générée")
+        self.layout.addWidget(self.label_equipe_adverse)
+        self.label_equipe_adverse.setStyleSheet("font-size: 20px; font-style: italic;")
+
+        # Bouton jouer
+
+        self.play_button = QPushButton("Jouer le match")
+        self.play_button.clicked.connect(self.jouer_match)
+        self.layout.addWidget(self.play_button)
 
         # Étirement du layout
         self.layout.addStretch()
 
+        # Ajout du layout à la fenêtre principale
         self.setLayout(self.layout)
 
-    def afficher_joueurs_equipe(joueurs_equipe, tactique):
+    def question_1_selectionnee(self, index):
         """
-        Affiche les joueurs de l'équipe sur le terrain en fonction de leur position et de leur bloc.
-
-        :param joueurs_equipe: Liste des joueurs de l'équipe avec leur position.
-        :param tactique: Tactique de l'équipe.
+        Gère la sélection de la première question.
         """
-        if tactique not in TACTIC_POSITIONS:
-            print("Tactique invalide.")
-            return
+        if index == 0:  # Si rien n'est sélectionné
+            self.bloc_a_ameliorer = ""
+            self.label_question_2.setText("Veuillez répondre à la première question")
+            self.combo_question_2.clear()  # Effacer les anciens choix
+            self.combo_question_2.setEnabled(False)  # Désactiver la combobox
+            self.submit_button.setEnabled(False)  # Désactiver le bouton de soumission
+        else:
+            self.bloc_a_ameliorer = self.combo_question_1.currentText()
+            self.label_question_2.setText(self.label_question_suivante())
+            self.combo_question_2.clear()  # Effacer les anciens choix
+            self.combo_question_2.setEnabled(True)  # Activer la combobox
+            if self.bloc_a_ameliorer == "Attaque":
+                self.combo_question_2.addItems(["", "Oui", "Non"])
+            elif self.bloc_a_ameliorer == "Milieu":
+                self.combo_question_2.addItems(["", "Offensif", "Défensif"])
+            elif self.bloc_a_ameliorer == "Défense":
+                self.combo_question_2.addItems(["", "Oui", "Non"])
+            self.submit_button.setEnabled(False)  # Désactiver le bouton de soumission
 
-        positions = TACTIC_POSITIONS[tactique]
-
-        # Parcours des positions sur le terrain
-        for position, (x, y) in positions.items():
-            # Sélection aléatoire d'un joueur pour cette position
-            joueur = random.choice(joueurs_equipe)
-
-            # Récupération du bloc du joueur
-            bloc_joueur = POSITION_BLOCK_MAPPING.get(position.split()[0])
-
-            # Vérification du bloc du joueur pour afficher uniquement les joueurs du bon bloc
-            if bloc_joueur and joueur["bloc"] == bloc_joueur:
-                print(
-                    f"Nom du joueur : {joueur['nom']}, Position : {position}, Bloc : {bloc_joueur}, Position sur le terrain : ({x}, {y})")
-
-                # Suppression du joueur de la liste pour éviter qu'il soit choisi à nouveau
-                joueurs_equipe.remove(joueur)
-
-    def ajouter_question_menu_deroulant(self, question_text, choices):
+    def label_question_suivante(self):
         """
-        Ajoute une question avec un menu déroulant à la page de questions.
-
-        :param question_text: Texte de la question.
-        :param choices: Choix disponibles dans le menu déroulant.
+        Retourne le libellé de la prochaine question en fonction de la réponse à la première question.
         """
-        # Ajouter une étiquette pour la question avec menu déroulant
-        question_label = QLabel(question_text)
-        self.layout.addWidget(question_label)
+        if self.bloc_a_ameliorer == "Attaque":
+            return "Veux-tu attaquer tout en étant prêt à défendre ?"
+        elif self.bloc_a_ameliorer == "Milieu":
+            return "Veux-tu un milieu offensif ou défensif ?"
+        elif self.bloc_a_ameliorer == "Défense":
+            return "Souhaites-tu un poste de libero (couverture de la défense) ?"
 
-        # Ajouter un menu déroulant (QComboBox) avec les choix
-        combo_box = QComboBox()
-        combo_box.addItems(choices)
-        combo_box.currentIndexChanged.connect(self.selection_changed)
-        self.layout.addWidget(combo_box)
-
-        # Utiliser un séparateur pour espacer les questions
-        self.layout.addSpacing(10)
-
-    def selection_changed(self, index):
+    def question_2_selectionnee(self, index):
         """
-        Gère le changement de sélection dans les menus déroulants.
-
-        :param index: Index de l'élément sélectionné dans le menu déroulant.
+        Gère la sélection de la deuxième question.
         """
-        # Fonction pour gérer le changement de sélection dans les menus déroulants
-        sender = self.sender()
-        if sender.currentText() == "Attaque":
-            print("Attaque")
-        elif sender.currentText() == "Milieu":
-            print("Milieu")
-        elif sender.currentText() == "Défense":
-            print("Défense")
+        if index == 0:  # Si rien n'est sélectionné
+            self.systeme_jeu = ""
+            self.combo_niveau.setEnabled(False)  # Désactiver la combobox de niveau
+            self.submit_button.setEnabled(False)  # Désactiver le bouton de soumission
+        else:
+            self.systeme_jeu = self.combo_question_2.currentText()
+            self.combo_niveau.setEnabled(True)  # Activer la combobox de niveau
+            self.submit_button.setEnabled(True)  # Activer le bouton de soumission
 
-    def ajouter_question_suivante(self, reponse_question_precedente):
-        """
-        Ajoute la question suivante sur l'interface en fonction de la réponse à la première question.
+    def generer_equipe_adverse(self):
+        "Génère l'équipe adverse"
 
-        :param reponse_question_precedente: Réponse à la première question.
-        """
-        # Vérifier si le nombre maximum de questions a été atteint
-        if self.compteurQuestions >= 2:
-            # Si oui, ne pas ajouter plus de questions
-            print("Nombre maximum de questions atteint.")
-            return
+        # Appel à la fonction get_random_team avec le niveau actuel
+        niveau = self.combo_niveau.currentText()  # Assurez-vous d'avoir un moyen d'accéder au niveau sélectionné
+        team = get_random_team(niveau)
 
-        if reponse_question_precedente == "Attaque":
-            # self.layout.addSpacing(10)
-            self.ajouter_question_menu_deroulant("Veux-tu attaquer tout en étant prêt à défendre?", ["Oui", "Non"])
-        elif reponse_question_precedente == "Milieu":
-            # self.layout.addSpacing(10)
-            self.ajouter_question_menu_deroulant("Veux-tu un milieu offensif ou défensif?", ["Offensif", "Défensif"])
+        if team:
+            # Afficher le message sur l'interface avec le nom de l'équipe générée
+            message = f"Vous allez jouer contre : {team}"
+            self.label_equipe_adverse.setText(message)
+        else:
+            # Gestion de l'erreur si aucune équipe n'est trouvée
+            message = "Veuillez répondre aux questions précédentes."
+            self.label_equipe_adverse.setText(message)
 
-        elif reponse_question_precedente == "Défense":
-            # self.layout.addSpacing(10)
-            self.ajouter_question_menu_deroulant("Souhaites-tu un poste de libero (couverture de la défense)?", ["Oui", "Non"])
-
-        # Bouton pour soumettre les réponses
-       # submit_button = QPushButton("Soumettre")
-       # submit_button.clicked.connect(self.soumettre_reponses)
-       # self.layout.addWidget(submit_button)
-
-        # Incrémenter le compteur de questions après avoir ajouté une question
-        self.compteurQuestions += 1
-        # Ajouter un bouton pour soumettre les réponses uniquement après la première question
-        if self.compteurQuestions == 2:
-            submit_button = QPushButton("Soumettre")
-            submit_button.clicked.connect(self.soumettre_reponses)
-            self.layout.addWidget(submit_button)
+        # Vérifier si toutes les réponses sont sélectionnées
+        # if self.bloc_a_ameliorer and self.systeme_jeu and self.niveau:
+        # Récupérer la réponse au niveau
+        # self.niveau = self.combo_niveau.currentText()
+        # Générer équipe
+        # team = get_random_team(self.niveau)
+        # return print("Vous allez jouer contre", team)
 
     def soumettre_reponses(self):
         """
-        Fonction exécutée lorsque le bouton 'Soumettre' est cliqué.
+        Soumettre les réponses aux questions.
         """
+        # Récupérer la réponse à la deuxième question
+        self.systeme_jeu = self.combo_question_2.currentText()
 
-        # Récupérer la réponse à la première question
-        combo_box_question_1 = self.findChild(QComboBox)
-        if combo_box_question_1 is not None:
-            selected_text = combo_box_question_1.currentText()
+        # Récupérer la réponse au niveau
+        self.niveau = self.combo_niveau.currentText()
+
+        # Vérifier si toutes les réponses sont sélectionnées
+        if self.bloc_a_ameliorer and self.systeme_jeu and self.niveau:
+            # Récupérer la tactique choisie
+            self.tactic = self.tactic_mapping[(self.bloc_a_ameliorer, self.systeme_jeu)]
+
+            # Générer l'équipe en fonction de la tactique
+            self.team = generate_team(self.tactic, self.niveau)
+
+            # Mettre à jour l'équipe et la tactique du widget DemiTerrain
+            self.demi_terrain_widget.set_team_and_tactic(self.team, self.tactic)
+
+    def jouer_match(self):
+        # Logique pour déterminer si l'utilisateur a gagné ou perdu
+        victoire = True  # ou False en fonction du résultat du match
+
+        # Afficher le message en fonction du résultat
+        if victoire:
+            resultat_message = "Bravo! Vous remportez le match."
+        else:
+            resultat_message = "Malheureusement, l'équipe adverse a gagné. Retentez votre chance!"
+
+        # Afficher le message sur l'interface
+        self.label_equipe_adverse.setText(resultat_message)
 
 
-            # Ajouter la deuxième question en fonction de la réponse à la première question
-            self.ajouter_question_suivante(selected_text)
-
-            # Récupérer la réponse à la deuxième question
-            combo_box_question_2 = self.findChild(QComboBox, "question2_combobox")
-            if combo_box_question_2 is not None:
-                selected_text_question_2 = combo_box_question_2.currentText()
-
-                # Déterminer la tactique en fonction des réponses aux deux questions
-                tactic = self.determiner_tactique(selected_text, selected_text_question_2)
-
-                if tactic:
-                    # Générer et afficher l'équipe sur le terrain
-                    equipe = generate_team(tactic, "Facile")
-                    self.afficher_joueurs_equipe(equipe)
-
-        print("Bouton 'Soumettre' cliqué.")
-
-    def determiner_tactique(self, reponse_question_precedente, reponse_question_suivante):
-        """
-        Détermine la tactique en fonction des réponses aux deux questions.
-
-        :param reponse_question_precedente: Réponse à la première question.
-        :param reponse_question_suivante: Réponse à la deuxième question.
-        :return: Tactique à appliquer.
-        """
-        # Logique pour déterminer la tactique en fonction des réponses aux questions
-        if reponse_question_precedente == "Attaque":
-            if reponse_question_suivante == "Oui":
-                return "4231"
-            elif reponse_question_suivante == "Non":
-                return "433"
-        elif reponse_question_precedente == "Milieu":
-            if reponse_question_suivante == "Offensif":
-                return "442 carré"
-            elif reponse_question_suivante == "Défensif":
-                return "442 losange"
-        elif reponse_question_precedente == "Défense":
-            if reponse_question_suivante == "Oui":
-                return "532"
-            elif reponse_question_suivante == "Non":
-                return "343"
-
-        return None
-
-    def desactiver_niveaux(self):
-        """
-        Désactiver les niveaux de jeu supérieurs à Facile jusqu'à ce que l'utilisateur gagne son match.
-        """
-        # Désactiver les niveaux de jeu supérieurs à Facile
-        for i in range(1, self.niveau_combobox.count()):
-            self.niveau_combobox.setItemData(i, False)
