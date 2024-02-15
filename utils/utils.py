@@ -8,7 +8,7 @@ from config.paths import MALE_PLAYERS_SORTED_CSV, FOOTBALL_TEAMS_SORTED
 from config.player_blocks import BLOCS
 from config.tactics import TACTIC_POSITIONS, POSITION_BLOCK_MAPPING
 from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtGui import QPainter, QPixmap, QFont
+from PyQt5.QtGui import QPainter, QPixmap, QFont, QFontMetrics
 
 
 def download_image(url):
@@ -35,13 +35,12 @@ def dessiner_image(painter, player_index, tactic, player):
     :param tactic: Tactique de jeu.
     :param player: Joueur à dessiner.
     """
-    # Supposons que la taille de l'image soit 50x50 pixels
-    taille_image = 50
-    marge_texte = 5  # Marge entre l'image et le texte
+    taille_image = 60 #dimension de l'image
+    marge_texte = 5  # écart entre l'image et le texte
 
     for position, (position_x, position_y) in TACTIC_POSITIONS[tactic].items():
         if player_index == 0:
-            # Télécharger l'image depuis l'URL
+            # Télécharge l'image depuis l'URL
             image_data = download_image(player['URL'])
             if image_data:
                 try:
@@ -53,14 +52,27 @@ def dessiner_image(painter, player_index, tactic, player):
                     painter.drawPixmap(position_x, position_y, taille_image, taille_image, image)
 
                     # Configurer la police pour le texte
-                    painter.setFont(QFont('Arial', 6))
+                    font = QFont('Arial', 10)  # Commencer avec une taille de police plus grande
+                    painter.setFont(font)
 
                     # Calculer la position du texte (en dessous de l'image)
                     texte_x = position_x
                     texte_y = position_y + taille_image + marge_texte
 
+                    # Mesurer la largeur du texte avec la police actuelle
+                    metrics = QFontMetrics(font)
+                    nom_joueur = player['Name']
+                    largeur_texte = metrics.width(nom_joueur)
+
+                    # Ajuster la taille de la police si le texte est trop large
+                    while largeur_texte > taille_image and font.pointSize() > 1:
+                        font.setPointSize(font.pointSize() - 1)  # Réduire la taille de la police
+                        painter.setFont(font)
+                        metrics = QFontMetrics(font)
+                        largeur_texte = metrics.width(nom_joueur)
+
                     # Dessiner le nom du joueur
-                    painter.drawText(QRect(texte_x, texte_y, taille_image, 20), Qt.AlignCenter, player['Name'])
+                    painter.drawText(QRect(texte_x, texte_y, taille_image, 30), Qt.AlignCenter, nom_joueur)
 
                     break  # Arrêter la boucle une fois le joueur dessiné
                 except Exception as e:
@@ -80,6 +92,10 @@ def get_random_player(block, category):
     filtered_players = filter_players(block, category)
     if not filtered_players.empty:
         return filtered_players.sample(n=1).iloc[0].to_dict()
+    #la fonction utilise la méthode sample(n=1) pour sélectionner aléatoirement un joueur parmi ceux filtrés
+    # n=1 spécifie que seulement un joueur doit être sélectionné.
+    # nous faisons cela car la fonction sample ne fonctionne qu'avec le iloc
+    #donc même si nous avons qu'un joueurs selectionné, nous devons le préciser
     else:
         logging.error("Exception -> Aucun joueur éligible trouvé.")
         return None
@@ -118,6 +134,7 @@ def get_random_team(category):
         logging.error("Exception -> Aucune équipe éligible trouvé.")
         return None
 
+#petit test simple pour tester ces fonctions
 #def main():
     # Appeler la fonction generer_equipe_adverse()
     #equipe_adverse = get_random_team("Facile")

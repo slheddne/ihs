@@ -3,12 +3,13 @@ from unittest.mock import patch
 
 from utils.utils import generate_team
 
-
+#tests poyr tester category et tactiques
 class TestGenerateTeam(unittest.TestCase):
     @patch('utils.utils.get_random_player')
     def test_generate_team_success(self, mock_get_random_player):
         # Comportement attendu du mock pour un joueur valide
-        mock_get_random_player.return_value = {'Nom': 'Abou Gnoul', 'Position': 'Gardien'}
+        mock_get_random_player.return_value = {'Nom': 'Kylian Mbappe', 'Position': 'ST'}
+        #mock pour générer une team virtuelle
 
         # On génère une équipe avec une tactique et une difficulté valides
         result = generate_team('433', 'Facile')
@@ -22,7 +23,7 @@ class TestGenerateTeam(unittest.TestCase):
     @patch('utils.utils.get_random_player')
     def test_generate_team_invalid_tactic(self, mock_get_random_player):
         # Comportement attendu du mock pour un joueur valide
-        mock_get_random_player.return_value = {'Nom': 'Abou Gnoul', 'Position': 'Gardien'}
+        mock_get_random_player.return_value = {'Nom': 'Kylian Mbappe', 'Position': 'ST'}
 
         # On génère une équipe avec une tactique invalide et une difficulté valide
         result = generate_team('459', 'Facile')
@@ -34,10 +35,10 @@ class TestGenerateTeam(unittest.TestCase):
     @patch('utils.utils.get_random_player')
     def test_generate_team_invalid_difficulty(self, mock_get_random_player):
         # Comportement attendu du mock pour un joueur valide
-        mock_get_random_player.return_value = {'Nom': 'Laurent Manaudou', 'Position': 'Gardien'}
+        mock_get_random_player.return_value = {'Nom': 'Kylian Mbappe', 'Position': 'ST'}
 
         # On génère une équipe avec une tactique valide et une difficulté invalide
-        result = generate_team('433', 'Masterclass')
+        result = generate_team('433', 'Python')
 
         # Vérification
         # 1) Vérifier si la fonction retourne None pour une difficulté invalide
