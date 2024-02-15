@@ -34,17 +34,21 @@ if __name__ == "__main__":
     main_window = QWidget()
     main_window.setWindowTitle("EA Sports FC 24")
     main_window.setGeometry(100, 100, 900, 550)
-    main_window.setFixedSize(900, 550)
+    main_window.setFixedSize(1000, 700) #(1200,550)
 
     # Création de la mise en page principale
     layout_principal = QHBoxLayout(main_window)
 
+    # Création de l'instance de DemiTerrain
+    demi_terrain = DemiTerrain()
+
+    # Création de l'instance de PageQuestions avec demi_terrain comme argument
+    page_questions = PageQuestions(demi_terrain)
+
     # Ajout du composant de dessin du terrain à gauche
-    dessin_demi_terrain = DemiTerrain()
-    layout_principal.addWidget(dessin_demi_terrain)
+    layout_principal.addWidget(demi_terrain)
 
     # Ajout du composant de questions à droite
-    page_questions = PageQuestions()
     layout_principal.addWidget(page_questions)
 
     # Ajout du logo en haut à droite
