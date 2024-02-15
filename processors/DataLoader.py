@@ -4,7 +4,7 @@ from config.logging_config import logger
 
 
 class DataLoader:
-    @staticmethod
+    @staticmethod # pour avoir une class static, pas possibilité de faire de self (méthode est liée à la classe et non à une instance spécifique de cette classe)
     def load_data(file_path):
         """
         Charge les données à partir d'un fichier CSV.
@@ -15,7 +15,7 @@ class DataLoader:
         Returns:
             DataFrame: Les données chargées depuis le fichier CSV, ou None en cas d'erreur.
         """
-        try:
+        try: # pour la gestion des exceptions, permet de gérer les erreurs qui se produisent pendant l'exécution d'un programme de manière contrôlée
             # Log pour indiquer le début du chargement des données
             logger.info(f"Chargement des données depuis le fichier '{file_path}'.")
             # Chargement des données depuis le fichier CSV

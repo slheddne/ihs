@@ -2,13 +2,14 @@ from PyQt5.QtWidgets import QVBoxLayout, QWidget, QLabel, QPushButton, QComboBox
 
 from utils.utils import generate_team
 from utils.utils import get_random_team
+import random
 
 
 class PageQuestions(QWidget):
     def __init__(self, demi_terrain_widget):
         """
         Initialise la page de questions.
-        :param demi_terrain_widget: Référence à l'instance de DemiTerrain pour mettre à jour l'équipe générée.
+        :param demi_terrain_widget: Référence à la classe DemiTerrain pour mettre à jour l'équipe générée.
         """
         super().__init__()
         self.setStyleSheet("""
@@ -197,13 +198,7 @@ class PageQuestions(QWidget):
             message = "Veuillez répondre aux questions précédentes."
             self.label_equipe_adverse.setText(message)
 
-        # Vérifier si toutes les réponses sont sélectionnées
-        # if self.bloc_a_ameliorer and self.systeme_jeu and self.niveau:
-        # Récupérer la réponse au niveau
-        # self.niveau = self.combo_niveau.currentText()
-        # Générer équipe
-        # team = get_random_team(self.niveau)
-        # return print("Vous allez jouer contre", team)
+
 
     def soumettre_reponses(self):
         """
@@ -228,13 +223,13 @@ class PageQuestions(QWidget):
 
     def jouer_match(self):
         # Logique pour déterminer si l'utilisateur a gagné ou perdu
-        victoire = True  # ou False en fonction du résultat du match
+        victoire = random.choice([True, False])  #True ou False en fonction du résultat du match
 
         # Afficher le message en fonction du résultat
         if victoire:
             resultat_message = "Bravo! Vous remportez le match."
         else:
-            resultat_message = "Malheureusement, l'équipe adverse a gagné. Retentez votre chance!"
+            resultat_message = " Perdu :(  Retentez votre chance!"
 
         # Afficher le message sur l'interface
         self.label_equipe_adverse.setText(resultat_message)

@@ -42,7 +42,7 @@ class PlayerDataProcessor:
         return data
 
     @staticmethod
-    def categorize_features(data):
+    def categorize_features(data): # à utiliser pour les calculs de prédictions
         """
         Catégorise les joueurs en fonction de leur note globale en leur attribuant un score qui est la somme de leurs caractéristiques.
 

@@ -34,7 +34,7 @@ class DemiTerrain(QWidget):
         gradient.setColorAt(0, QColor(0, 150, 0))  # Vert foncé en haut
         gradient.setColorAt(1, QColor(0, 210, 0))  # Vert clair en bas
         painter.setBrush(gradient)
-        painter.drawRect(0, 0, self.width(), self.height())
+        painter.drawRect(0, 0, 420, 550)
 
     def dessiner_demi_terrain(self, painter):
         """

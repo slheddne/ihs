@@ -4,3 +4,4 @@ FEATURES_BLOCKS = {
     'Milieu': ['Interceptions', 'Vision', 'Dribbling', 'Passing', 'Pace', 'Crossing', 'Stamina', 'Agility'],
     'Attaque': ['Positioning', 'Penalties', 'Vision', 'Agility', 'Dribbling', 'Passing', 'Shooting', 'Acceleration', 'Finishing']
 }
+#À utiliser pour effectuer les prédictions de victoire d'un match (calcul de score)

@@ -31,8 +31,8 @@ TACTIC_POSITIONS = {
 
 
         "milieu 1": (180, 300),
-        "milieu 2": (120, 235),
-        "milieu 3": (225, 235),
+        "milieu 2": (100, 235),
+        "milieu 3": (250, 235),
         "milieu 4": (180, 175),
 
 
@@ -111,7 +111,6 @@ TACTIC_POSITIONS = {
 }
 
 # Positions mappées pour savoir le bloc associé
-# Une meilleure solution serait de revoir la structure des données pour éviter ce mapping
 POSITION_BLOCK_MAPPING = {
     "gardien": "Gardien",
     "defenseur": "Defense",
